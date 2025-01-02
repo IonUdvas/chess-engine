@@ -49,6 +49,8 @@ def main():
                 if len(playerClicks) == 2:
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     print(move.getChessNotation())
+                    
+                    # if it is a validMove, make the move, and clear the stores. If not, create a single click, so that we can select and deselect, and select an entirely different piece
                     if move in validMoves:
                         gs.makeMove(move)
                         moveMade = True
