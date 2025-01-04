@@ -23,11 +23,23 @@ class GameState:
         self.whiteToMove = True
         self.moveLog = []
 
+        self.whiteKingLocation = (7, 4)
+        self.blackKingLocation = (0, 4)
+
+        self.checkMate = False
+        self.staleMate = False
+
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.moveLog.append(move)
         self.whiteToMove = not self.whiteToMove
+
+        # Kings'location update
+        if move.pieceMoved == 'wK':
+            self.whiteKingLocation = (move.endRow, move.endCol)
+        elif move.pieceMoved == 'bK':
+            self.blackKingLocation = (move.endRow, move.endCol)
 
     def undoMove(self):
         if len(self.moveLog) != 0:
@@ -37,7 +49,44 @@ class GameState:
             self.whiteToMove = not self.whiteToMove
 
     def getValidMoves(self):
-        return self.getPossibleMoves()
+        moves = self.getPossibleMoves()
+
+        for m in moves[:]:
+            self.makeMove(m)
+            self.whiteToMove = not self.whiteToMove
+            if self.inCheck():
+                moves.remove(m)
+            self.whiteToMove = not self.whiteToMove
+            self.undoMove()
+
+        if len(moves) == 0:
+            if self.inCheck():
+                self.checkMate = True
+            else:
+                self.staleMate = True
+        
+        else:
+            self.checkMate = False
+            self.staleMate = False
+
+        print(self.checkMate)
+
+        return moves
+    
+    def inCheck(self):
+        if self.whiteToMove:
+            return self.squareUnderAttack(self.whiteKingLocation)
+        else:
+            return self.squareUnderAttack(self.blackKingLocation)
+        
+    def squareUnderAttack(self, location):
+        self.whiteToMove = not self.whiteToMove
+        oppMoves = self.getPossibleMoves()
+        self.whiteToMove = not self.whiteToMove
+        for m in oppMoves:
+            if (m.endRow, m.endCol) == location:
+                return True
+        return False
 
     def getPossibleMoves(self):
         moves = []
